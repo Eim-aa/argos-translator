@@ -57,16 +57,23 @@ git clone https://github.com/Eim-aa/argos-translator.git ~/.local/share/argos-tr
 
 ```mermaid
 flowchart LR
-    A["选中文本"] --> B["Hammerspoon 按下 Option+T"]
-    B --> C["AX selectedText"]
-    C -->|兜底| D["Cmd+C 带剪贴板快照/恢复"]
-    C --> E["HTTP POST 127.0.0.1:54321/translate"]
-    D --> E
-    E --> F["FastAPI 服务"]
-    F --> G["单例 Argos / CTranslate2 翻译器"]
-    G --> H["SHA-1 LRU 缓存"]
-    H --> I["JSON 响应"]
-    I --> J["hs.canvas 浮窗"]
+    subgraph HS["Hammerspoon · Lua 客户端"]
+        H1["⌥+T 热键"] --> H2["AX selectedText"]
+        H2 -.失败兜底.-> H3["Cmd+C + 剪贴板快照/恢复"]
+        H2 & H3 --> H4["HTTP POST 127.0.0.1:54321"]
+    end
+
+    H4 ==> S1
+
+    subgraph BE["FastAPI 服务 · Python 后端"]
+        S1{"LRU 缓存命中?"} -->|hit| S5
+        S1 -->|miss · 短输入| S3["Argos / CTranslate2 推理"]
+        S1 -->|miss · 长输入| S2["Stanza SBD 分句"]
+        S2 --> S3
+        S3 --> S5["JSON 响应"]
+    end
+
+    S5 ==> H5["hs.canvas 浮窗显示"]
 ```
 
 ## 常用命令

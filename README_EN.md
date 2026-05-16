@@ -57,16 +57,23 @@ After install:
 
 ```mermaid
 flowchart LR
-    A["Selected text"] --> B["Option+T in Hammerspoon"]
-    B --> C["AX selectedText"]
-    C -->|fallback| D["Cmd+C with pasteboard snapshot/restore"]
-    C --> E["HTTP POST 127.0.0.1:54321/translate"]
-    D --> E
-    E --> F["FastAPI service"]
-    F --> G["Singleton Argos / CTranslate2 translator"]
-    G --> H["LRU cache keyed by SHA-1"]
-    H --> I["JSON response"]
-    I --> J["hs.canvas floating result"]
+    subgraph HS["Hammerspoon · Lua client"]
+        H1["⌥+T hotkey"] --> H2["AX selectedText"]
+        H2 -.fallback.-> H3["Cmd+C + pasteboard snapshot/restore"]
+        H2 & H3 --> H4["HTTP POST 127.0.0.1:54321"]
+    end
+
+    H4 ==> S1
+
+    subgraph BE["FastAPI service · Python backend"]
+        S1{"LRU cache hit?"} -->|hit| S5
+        S1 -->|miss · short input| S3["Argos / CTranslate2 inference"]
+        S1 -->|miss · long input| S2["Stanza SBD sentence split"]
+        S2 --> S3
+        S3 --> S5["JSON response"]
+    end
+
+    S5 ==> H5["hs.canvas floating popup"]
 ```
 
 ## Commands
