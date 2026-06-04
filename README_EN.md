@@ -1,6 +1,6 @@
 # argos-translator
 
-> Translate selected English on macOS in any app — **fully offline**, ~150 ms typical, ~400 ms p95. No API key, no cloud.
+> Translate selected English on macOS in any app. **Fully offline by default** (local Argos, ~150 ms typical, ~400 ms p95); optionally switch to a **cloud engine (Volcengine)** for higher quality with one config line. **Double-tap Option (⌥⌥)** to translate.
 
 中文版: [README.md](README.md)
 
@@ -8,20 +8,25 @@
 
 ## Why this?
 
-Most macOS selection translators either need an API key (OpenAI, DeepL) or round-trip to a vendor's cloud. This one stays on your machine:
+Most macOS selection translators either need an API key (OpenAI, DeepL) or round-trip to a vendor's cloud. This one:
 
-|                          | argos-translator (this) | [pot-desktop](https://github.com/pot-app/pot-desktop) | [openai-translator](https://github.com/openai-translator/openai-translator) | macOS Translate |
-| ------------------------ | ----------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------- | --------------- |
-| 100% offline             | ✓                       | partial                                               | ✗ (needs API key)                                                           | ✓               |
-| System-wide hotkey       | ✓                       | ✓                                                     | ✓                                                                           | ✗               |
-| Works in any app         | ✓ (AX + clipboard)      | ✓                                                     | ✓                                                                           | limited         |
-| Language pairs           | en→zh                   | 55                                                    | 55                                                                          | system          |
-| Typical latency          | ~150 ms local           | network RTT                                           | network RTT                                                                 | system          |
-| GUI                      | floating canvas         | full window                                           | full window                                                                 | system          |
-| Install                  | brew + HS + script      | DMG                                                   | DMG                                                                         | built-in        |
-| License                  | MIT                     | GPL-3.0                                               | AGPL-3.0                                                                    | proprietary     |
+- **100% offline by default** — local Argos / CTranslate2 inference, your text never leaves the machine.
+- **Optional cloud engine** — when you want higher quality (long, complex sentences and jargon), switch to the **Volcengine** translation API with one config line.
+- **Pluggable architecture** — the engine sits behind a single function, so adding another (DeepL, Google, Qwen, …) is just one more small function; the pipeline (hotkey, cache, popup) is untouched.
+- **Double-tap Option to trigger** — select English, tap ⌥ twice, the translation pops up next to the cursor.
 
-It's deliberately narrow: **English → Chinese, selection only, macOS only**. If you need 55 languages or OCR, use pot-desktop. If you want the cheapest path to "press a hotkey, get a translation, never leak the text," this is it.
+|                          | argos-translator (this)        | [pot-desktop](https://github.com/pot-app/pot-desktop) | [openai-translator](https://github.com/openai-translator/openai-translator) | macOS Translate |
+| ------------------------ | ------------------------------ | ----------------------------------------------------- | --------------------------------------------------------------------------- | --------------- |
+| 100% offline             | ✓ default (optional cloud)     | partial                                               | ✗ (needs API key)                                                           | ✓               |
+| System-wide hotkey       | ✓ (double-tap Option)          | ✓                                                     | ✓                                                                           | ✗               |
+| Works in any app         | ✓ (AX + clipboard)             | ✓                                                     | ✓                                                                           | limited         |
+| Engines                  | offline Argos + cloud Volcengine (pluggable) | several                                 | OpenAI etc.                                                                 | system          |
+| Language pairs           | en→zh                          | 55                                                    | 55                                                                          | system          |
+| Typical latency          | ~150 ms local / ~0.3–1 s Volc  | network RTT                                           | network RTT                                                                 | system          |
+| GUI                      | floating canvas                | full window                                           | full window                                                                 | system          |
+| License                  | MIT                            | GPL-3.0                                               | AGPL-3.0                                                                    | proprietary     |
+
+It's deliberately narrow: **English → Chinese, selection only, macOS only**. If you need 55 languages or OCR, use pot-desktop.
 
 ## Install
 
@@ -40,25 +45,50 @@ git clone https://github.com/Eim-aa/argos-translator.git ~/.local/share/argos-tr
 
 The installer checks Homebrew, Python >= 3.10, and disk space. It creates a venv, installs `requirements.txt`, downloads the `translate-en_zh-1_9` model (~150 MB) from Argos Translate's official package index via `argospm install translate-en_zh`, loads a LaunchAgent on `127.0.0.1:54321`, and wires the Hammerspoon module into `~/.hammerspoon/init.lua`.
 
-**The model download is the only network call.** After install, the runtime is 100% offline — see "Offline Privacy" below.
+**The default engine is offline Argos, and the model download is the only network call.** The cloud engine is optional — see "Engines" below.
 
 After install:
 
 1. `brew install --cask hammerspoon`
 2. Open Hammerspoon and grant Accessibility permission in System Settings.
 3. Reload Hammerspoon config.
-4. Select English text in any app, press **Option+T**.
+4. Select English text in any app, **double-tap Option (⌥⌥)**.
 
 > Before publishing your fork, replace `Eim-aa` everywhere with your GitHub username:
 > `grep -rl Eim-aa . | xargs sed -i '' "s/Eim-aa/<your-username>/g"`
 > Then rename `launchd/io.github.Eim-aa.argos-translator.plist.template` accordingly.
+
+## Engines (optional cloud switch)
+
+The engine is chosen by `ENGINE` in `config.py`, **defaulting to `argos` (offline)**. Configuration is read from a **local, gitignored** file `~/.config/argos-translator/volc.env`, so credentials never enter the repo.
+
+**Switch to the Volcengine cloud engine:**
+
+1. In the [Volcengine console](https://console.volcengine.com/), enable "Machine Translation", grant your (sub-)user `TranslateFullAccess`, and create an AK/SK pair.
+2. Write `~/.config/argos-translator/volc.env`:
+   ```
+   VOLC_ACCESS_KEY=your-AccessKeyID
+   VOLC_SECRET_KEY=your-SecretAccessKey
+   ENGINE=volc
+   ```
+   ```bash
+   chmod 600 ~/.config/argos-translator/volc.env
+   ```
+3. Restart the service to apply:
+   ```bash
+   launchctl kickstart -k gui/$(id -u)/io.github.Eim-aa.argos-translator
+   ```
+
+Volcengine uses AK/SK V4 request signing (implemented in [`volc_engine.py`](volc_engine.py), stdlib only) and gives higher quality, especially on long sentences and domain jargon. In this mode the selected text is sent over HTTPS to the Volcengine API (see "Privacy"). To go back offline, set `ENGINE` to `argos` (or delete `volc.env`) and restart.
+
+**Adding another engine:** the engine lives behind one `_translate_*` function in `translator.py`. Copy the shape of `volc_engine.py` (e.g. for DeepL, Google, Qwen) and add a branch on `config.ENGINE` — the hotkey, cache, popup, and HTTP plumbing stay untouched.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
     subgraph HS["Hammerspoon · Lua client"]
-        H1["⌥+T hotkey"] --> H2["AX selectedText"]
+        H1["double-tap ⌥"] --> H2["AX selectedText"]
         H2 -.fallback.-> H3["Cmd+C + pasteboard snapshot/restore"]
         H2 & H3 --> H4["HTTP POST 127.0.0.1:54321"]
     end
@@ -67,10 +97,10 @@ flowchart LR
 
     subgraph BE["FastAPI service · Python backend"]
         S1{"LRU cache hit?"} -->|hit| S5
-        S1 -->|miss · short input| S3["Argos / CTranslate2 inference"]
-        S1 -->|miss · long input| S2["Stanza SBD sentence split"]
-        S2 --> S3
-        S3 --> S5["JSON response"]
+        S1 -->|miss| S2{"ENGINE?"}
+        S2 -->|argos · offline| S3["Stanza split → Argos / CTranslate2"]
+        S2 -->|volc · cloud| S4["Volcengine TranslateText (AK/SK signed)"]
+        S3 & S4 --> S5["JSON response"]
     end
 
     S5 ==> H5["hs.canvas floating popup"]
@@ -87,28 +117,28 @@ flowchart LR
 
 ## Troubleshooting
 
-| Symptom              | Diagnose                                                                                       | Fix                                                                                          |
-| -------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Hotkey does nothing  | Open Hammerspoon Console                                                                       | Grant Accessibility permission, then Reload Config                                           |
-| Service unreachable  | `launchctl print gui/$(id -u)/io.github.Eim-aa.argos-translator`                         | Run `scripts/launchd_install.sh`                                                             |
-| Health fails         | `curl -s http://127.0.0.1:54321/health`                                                        | Check `~/Library/Logs/argos-translator.err.log`                                              |
-| Slow first request   | `tail -50 ~/Library/Logs/argos-translator.err.log`                                             | Confirm warmup logged `model_warmup_done`                                                    |
-| Clipboard changed    | Run manual `pbpaste \| shasum` before and after Option+T                                       | Report the source app and pasteboard type                                                    |
-| Stanza tries network | Search logs for `raw.githubusercontent.com`                                                    | Confirm `translator.py` patches `DownloadMethod.REUSE_RESOURCES` before importing Argos      |
-| Memory high          | `ps -o rss= -p $(launchctl print gui/$(id -u)/io.github.Eim-aa.argos-translator \| awk '/pid =/ {print $3}')` | Restart service; inspect repeated long-text workload                                         |
+| Symptom               | Diagnose                                                                                       | Fix                                                                                          |
+| --------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Double-tap does nothing | Open Hammerspoon Console                                                                      | Grant Accessibility permission, then Reload Config; or widen `DOUBLE_TAP_WINDOW_S`           |
+| Service unreachable   | `launchctl print gui/$(id -u)/io.github.Eim-aa.argos-translator`                         | Run `scripts/launchd_install.sh`                                                             |
+| Health fails          | `curl -s http://127.0.0.1:54321/health`                                                        | Check `~/Library/Logs/argos-translator.err.log`                                              |
+| Slow first request (offline) | `tail -50 ~/Library/Logs/argos-translator.err.log`                                      | Confirm warmup logged `model_warmup_done` (the volc engine needs no warmup)                  |
+| Volcengine error      | See the `volc_error` note in the popup                                                         | Check the AK/SK in `volc.env`, that the sub-user has `TranslateFullAccess`, and that Machine Translation is enabled |
+| Clipboard changed     | Run manual `pbpaste \| shasum` before and after the double-tap                                 | Report the source app and pasteboard type                                                    |
+| Stanza tries network  | Search logs for `raw.githubusercontent.com`                                                    | Confirm `translator.py` patches `DownloadMethod.REUSE_RESOURCES` before importing Argos      |
 
-## Offline Privacy
+## Privacy (offline vs cloud)
 
-The runtime calls only `127.0.0.1`. No OpenAI, Google Translate, DeepL, Baidu, Tencent, Alibaba, or other cloud translation APIs are used. Stanza is patched to reuse the bundled `resources.json`, preventing downloads of `resources_*.json`.
+The mode is controlled by the `ENGINE` switch in `volc.env`, **offline by default**.
 
-Verify with:
+- **Offline mode (default, `ENGINE=argos`)**: the runtime calls only `127.0.0.1`; selected text never leaves the machine; no cloud translation API is used. Stanza is patched to reuse the bundled `resources.json`. Verify with:
+  ```bash
+  PID=$(launchctl print gui/$(id -u)/io.github.Eim-aa.argos-translator | awk '/pid =/ {print $3}')
+  nettop -p "$PID"
+  ```
+- **Cloud mode (`ENGINE=volc`)**: your selected text is sent over HTTPS to the **Volcengine** translation API to get the translation — this mode is **not offline**. It is entirely opt-in (off by default). The AK/SK is read only from the local `volc.env` and never enters the repo.
 
-```bash
-PID=$(launchctl print gui/$(id -u)/io.github.Eim-aa.argos-translator | awk '/pid =/ {print $3}')
-nettop -p "$PID"
-```
-
-## Replacing The Model With NLLB-200-Distilled
+## Replacing The Model With NLLB-200-Distilled (offline engine)
 
 1. Download or convert an NLLB-200-distilled model on a networked machine.
 2. Convert it to CTranslate2 format with `ct2-transformers-converter`.
@@ -120,9 +150,10 @@ nettop -p "$PID"
 
 ## Credits
 
-- [Argos Translate](https://github.com/argosopentech/argos-translate) — offline translation engine
+- [Argos Translate](https://github.com/argosopentech/argos-translate) — offline translation engine (default)
 - [CTranslate2](https://github.com/OpenNMT/CTranslate2) — fast inference runtime
 - [Stanza](https://github.com/stanfordnlp/stanza) — sentence boundary detection
+- [Volcengine Translate](https://www.volcengine.com/product/machine-translation) — optional cloud translation engine
 - [Hammerspoon](https://www.hammerspoon.org/) — macOS automation
 
 ## License
