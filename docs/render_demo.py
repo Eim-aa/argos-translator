@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Render docs/demo.gif from scratch.
 
-Draws a 3-frame illustration of the ⌥+T workflow:
+Draws a 3-frame illustration of the double-tap-Option workflow:
   1. TextEdit-style window with an English sentence (idle)
   2. The sentence highlighted as a selection
   3. The hs.canvas-style popup with the Chinese translation
@@ -29,7 +29,7 @@ OUTPUT = Path(__file__).resolve().parent / "demo.gif"
 
 W, H = 800, 320
 DESKTOP_RGB = (40, 56, 48)
-EN = "Offline translation keeps your text private."
+EN = "The central bank held interest rates steady, citing easing inflation."
 
 FONT_UI = "/System/Library/Fonts/Helvetica.ttc"
 FONT_MONO = "/System/Library/Fonts/Menlo.ttc"
@@ -81,7 +81,7 @@ def make_frame(state: str, zh: str, sub: str) -> Image.Image:
         f_hint = ImageFont.truetype(FONT_UI, 12)
         draw.text(
             (text_x, text_y + 60),
-            "Select the line, then press Option + T",
+            "Select the line, then double-tap the Option key",
             fill=(140, 140, 140),
             font=f_hint,
         )
