@@ -11,7 +11,7 @@ MP4="$OUT_DIR/argos-translator-demo-$STAMP.mp4"
 mkdir -p "$OUT_DIR"
 
 echo "Recording 30 seconds to: $RAW"
-echo "Prepare a text selection, press Option+T during recording, then wait."
+echo "Prepare a text selection, double-tap the Option key during recording, then wait."
 /usr/sbin/screencapture -v -V 30 "$RAW"
 
 if command -v ffmpeg >/dev/null 2>&1; then

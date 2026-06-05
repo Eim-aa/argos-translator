@@ -1,5 +1,10 @@
 # argos-translator
 
+![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
+![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)
+![Engine](https://img.shields.io/badge/engine-offline%20%2B%20Volcengine-blue.svg)
+
 > Translate selected English on macOS in any app. **Fully offline by default** (local Argos, ~150 ms typical, ~400 ms p95); optionally switch to a **cloud engine (Volcengine)** for higher quality with one config line. **Double-tap Option (⌥⌥)** to translate.
 
 中文版: [README.md](README.md)

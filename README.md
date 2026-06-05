@@ -1,5 +1,10 @@
 # argos-translator
 
+![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
+![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)
+![Engine](https://img.shields.io/badge/engine-offline%20%2B%20Volcengine-blue.svg)
+
 > macOS 任意 app 划词英译中。**默认完全离线**（本地 Argos，典型 ~150 ms，p95 ~400 ms）；也可一行配置切到**云端引擎（火山翻译）**换取更高质量。**双击 Option（⌥⌥）** 即可翻译。
 
 English: [README_EN.md](README_EN.md)

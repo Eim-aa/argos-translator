@@ -150,7 +150,7 @@ echo "== required next steps =="
 echo "1. Install Hammerspoon if needed: brew install --cask hammerspoon"
 echo "2. Open Hammerspoon and grant Accessibility permission in System Settings."
 echo "3. Ensure ~/.hammerspoon/init.lua contains: require(\"argos-translator\")"
-echo "4. Reload Hammerspoon config, select English text, press Option+T."
+echo "4. Reload Hammerspoon config, select English text, double-tap Option."
 echo
 echo "Run diagnostics any time with:"
 echo "  $ROOT/scripts/test.sh"
