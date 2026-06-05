@@ -35,9 +35,9 @@ It's deliberately narrow: **English → Chinese, selection only, macOS only**. I
 
 ## Deploy with an AI Agent
 
-Using an AI agent like Claude Code or OpenHands? Hand it the repo and it can run
-**almost the entire** install for you — you barely have to do anything. Just send
-your agent:
+Using an AI agent like **Claude Code** (OpenHands, Codex, etc.)? Hand it the repo
+and it can run **almost the entire** install for you — you barely have to do
+anything. Just send your agent:
 
 ```
 Please install argos-translator following the AGENTS.md at https://github.com/Eim-aa/argos-translator

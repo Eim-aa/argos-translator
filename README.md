@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)
 ![Engine](https://img.shields.io/badge/engine-offline%20%2B%20Volcengine-blue.svg)
 
-> macOS 任意 app 划词英译中。**默认完全离线**（本地 Argos，典型 ~150 ms，p95 ~400 ms）；也可一行配置切到**云端引擎（火山翻译）**换取更高质量。**双击 Option（⌥⌥）** 即可翻译。
+> macOS 任意 app 划词英译中。**默认完全离线**（本地 Argos，典型 ~150 ms，p95 ~400 ms）；也可一行配置切到**云端引擎**（火山翻译）换取更高质量。**双击 Option（⌥⌥）** 即可翻译。
 
 English: [README_EN.md](README_EN.md)
 
@@ -35,7 +35,7 @@ English: [README_EN.md](README_EN.md)
 
 ## 用 AI Agent 一键部署
 
-用 Claude Code、OpenHands 这类 AI Agent？把仓库交给它，它能替你跑完**几乎所有**安装步骤——你几乎什么都不用做。发这一句给你的 Agent 即可：
+用 **Claude Code** 这类 AI Agent（OpenHands、Codex 等同理）？把仓库交给它，它能替你跑完**几乎所有**安装步骤——你几乎什么都不用做。发这一句给你的 Agent 即可：
 
 ```
 请按 https://github.com/Eim-aa/argos-translator 的 AGENTS.md 帮我安装 argos-translator。
