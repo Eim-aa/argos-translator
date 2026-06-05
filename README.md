@@ -33,7 +33,24 @@ English: [README_EN.md](README_EN.md)
 
 定位刻意做窄：**只做英→中、只做划词、只支持 macOS**。要 55 语言或 OCR 请用 pot-desktop。
 
-## 安装
+## 用 AI Agent 一键部署
+
+用 Claude Code、OpenHands 这类 AI Agent？把仓库交给它，它能替你跑完**几乎所有**安装步骤——你几乎什么都不用做。发这一句给你的 Agent 即可：
+
+```
+请按 https://github.com/Eim-aa/argos-translator 的 AGENTS.md 帮我安装 argos-translator。
+```
+
+Agent 会自动：克隆仓库、装依赖、下载离线模型、注册后台服务、接好 Hammerspoon、跑通验证。详细的机器可读步骤见 [AGENTS.md](AGENTS.md)。
+
+只有**两件事机器替不了**，需要你本人动手：
+
+1. **授权（必做）**：在「系统设置 → 隐私与安全性 → 辅助功能」里给 **Hammerspoon** 打勾。这是 macOS 的安全限制（TCC），任何脚本或 Agent 都无法代劳。
+2. **云端 API Key（只有想用云端时才需要）**：去[火山引擎控制台](https://console.volcengine.com/)注册、开通「机器翻译」、创建一对 AK/SK，把 key 交给 Agent。Agent 会把它写进本地的 `~/.config/argos-translator/volc.env`（已被 gitignore，**绝不进仓库，也不写进任何源码文件**）。
+
+> 安全提示：API Key 只放在本地 `volc.env` 里。别把 key 粘进源码或提交到 Git——这也是本工具有意把密钥与代码分离的原因。
+
+## 安装（手动）
 
 一行装（克隆到 `~/.local/share/argos-translator` 并执行安装脚本）：
 
@@ -62,6 +79,17 @@ git clone https://github.com/Eim-aa/argos-translator.git ~/.local/share/argos-tr
 > Fork 后发布前，把所有 `Eim-aa` 替换为你的 GitHub 用户名：
 > `grep -rl Eim-aa . | xargs sed -i '' "s/Eim-aa/<你的用户名>/g"`
 > 再把 `launchd/io.github.Eim-aa.argos-translator.plist.template` 改名。
+
+## 本地 vs 云端：怎么选？
+
+|          | 本地翻译（离线，默认）     | 云端翻译（火山引擎，**推荐**）     |
+| -------- | -------------------------- | ---------------------------------- |
+| 适用场景 | 简单单词、短句             | 经常阅读长句 / 长难句              |
+| 优势     | 隐私：文本不出本机         | 准确性更高，尤其长难句与专业术语   |
+| 联网     | 仅安装时下模型，之后全离线 | 每次翻译走 HTTPS 到火山 API        |
+| 配置     | 开箱即用，零配置           | 需注册火山、拿一对 API Key         |
+
+**推荐**：如果你主要是读英文报告里的长句、长难句（本工具最初就是为这个场景做的），用**云端火山引擎**，准确性明显更好。如果只在意隐私、或翻的多是单词和短句，默认的**本地离线**就够了。两种模式随时一行配置切换（见下）。
 
 ## 翻译引擎（可选切到云端）
 

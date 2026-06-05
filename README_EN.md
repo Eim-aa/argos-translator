@@ -33,7 +33,35 @@ Most macOS selection translators either need an API key (OpenAI, DeepL) or round
 
 It's deliberately narrow: **English → Chinese, selection only, macOS only**. If you need 55 languages or OCR, use pot-desktop.
 
-## Install
+## Deploy with an AI Agent
+
+Using an AI agent like Claude Code or OpenHands? Hand it the repo and it can run
+**almost the entire** install for you — you barely have to do anything. Just send
+your agent:
+
+```
+Please install argos-translator following the AGENTS.md at https://github.com/Eim-aa/argos-translator
+```
+
+The agent clones the repo, installs dependencies, downloads the offline model,
+registers the background service, wires up Hammerspoon, and runs the verification.
+The machine-readable steps live in [AGENTS.md](AGENTS.md).
+
+Only **two things can't be automated** and need you:
+
+1. **Grant permission (required):** in System Settings → Privacy & Security →
+   Accessibility, enable **Hammerspoon**. This is a macOS security gate (TCC) that
+   no script or agent can bypass.
+2. **Cloud API key (only if you want the cloud engine):** sign up at the
+   [Volcengine console](https://console.volcengine.com/), enable "Machine
+   Translation", create an AK/SK pair, and hand the keys to the agent. It writes
+   them to the local `~/.config/argos-translator/volc.env` (gitignored — **never
+   committed and never written into any source file**).
+
+> Security note: the API key lives only in the local `volc.env`. Don't paste it
+> into source or commit it to Git — keeping keys out of the code is by design.
+
+## Install (manual)
 
 One-line install (clones to `~/.local/share/argos-translator` and runs the installer):
 
@@ -62,6 +90,21 @@ After install:
 > Before publishing your fork, replace `Eim-aa` everywhere with your GitHub username:
 > `grep -rl Eim-aa . | xargs sed -i '' "s/Eim-aa/<your-username>/g"`
 > Then rename `launchd/io.github.Eim-aa.argos-translator.plist.template` accordingly.
+
+## Local vs Cloud — which to use?
+
+|              | Local (offline, default)              | Cloud (Volcengine, **recommended**)        |
+| ------------ | ------------------------------------- | ------------------------------------------ |
+| Best for     | simple words, short phrases           | reading long / complex sentences           |
+| Strength     | privacy — text never leaves your Mac  | higher accuracy, especially long sentences and jargon |
+| Network      | model download at install, then fully offline | each translation goes over HTTPS to the Volcengine API |
+| Setup        | works out of the box, zero config     | needs a Volcengine account + an AK/SK pair |
+
+**Recommendation:** if you mostly read long, complex sentences in English reports
+(the original reason this tool exists), use the **Volcengine cloud engine** — the
+accuracy is noticeably better. If you only care about privacy, or mostly translate
+single words and short phrases, the default **offline** mode is enough. You can
+switch between them with one config line (below).
 
 ## Engines (optional cloud switch)
 
