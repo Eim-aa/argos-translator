@@ -266,7 +266,7 @@ local function callTranslate(text, source)
     end)
     t15 = hs.timer.doAfter(1.5, function()
         update("服务无响应,检查中…", nil)
-        hs.http.asyncGet(URL .. "/health", function(code, _, _)
+        hs.http.asyncGet(URL .. "/health", nil, function(code, _, _)
             if not activeCanvas then return end
             if code ~= 200 then
                 update(string.format("服务异常 (HTTP %s)", tostring(code)), nil)
@@ -399,7 +399,7 @@ end
 
 local function initEngineState()
     local persisted = readPersistedEngine()
-    hs.http.asyncGet(URL .. "/health", function(code, bodyStr, _)
+    hs.http.asyncGet(URL .. "/health", nil, function(code, bodyStr, _)
         if code == 200 then
             local ok, h = pcall(hs.json.decode, bodyStr or "")
             if ok and type(h) == "table" then
@@ -499,13 +499,19 @@ function M.start()
     )
     tapWatcher:start()
 
-    -- Menu-bar engine switch (本地 ⇄ 云端).
-    if menubar then menubar:delete() end
-    menubar = hs.menubar.new()
-    if menubar then
-        menubar:setTitle("句译…")
-        rebuildMenu()
-        initEngineState()
+    -- Menu-bar engine switch (本地 ⇄ 云端). It is optional UI: never let an
+    -- error here abort module load and take the core hotkey down with it.
+    local ok, err = pcall(function()
+        if menubar then menubar:delete() end
+        menubar = hs.menubar.new()
+        if menubar then
+            menubar:setTitle("句译…")
+            rebuildMenu()
+            initEngineState()
+        end
+    end)
+    if not ok then
+        appendLog({ event = "menubar_init_failed", error = tostring(err) })
     end
 end
 
